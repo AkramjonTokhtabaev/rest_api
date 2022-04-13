@@ -4,6 +4,7 @@ import com.example.task1.dto.ApiResponse;
 import com.example.task1.dto.CompanyDto;
 import com.example.task1.entity.Address;
 import com.example.task1.entity.Company;
+import com.example.task1.repository.AddressRepository;
 import com.example.task1.repository.CompanyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -20,6 +21,7 @@ import java.util.Optional;
 public class CompanyService {
 
     final CompanyRepository companyRepository;
+    final AddressRepository addressRepository;
 
     public List<Company> getAll() {
         return companyRepository.findAll();
@@ -63,8 +65,8 @@ public class CompanyService {
     }
 
     public ApiResponse deleteCompany(Integer id) {
-        Optional<Company> optionalBook = companyRepository.findById(id);
-        if (optionalBook.isPresent()){
+        Optional<Company> optionalCompany = companyRepository.findById(id);
+        if (optionalCompany.isPresent()){
             companyRepository.deleteById(id);
             return new ApiResponse("deleted",true);
         }
