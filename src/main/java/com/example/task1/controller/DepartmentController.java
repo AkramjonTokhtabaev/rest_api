@@ -1,7 +1,9 @@
 package com.example.task1.controller;
 
 
+import com.example.task1.dto.ApiResponse;
 import com.example.task1.dto.CompanyDto;
+import com.example.task1.dto.DepartmentDto;
 import com.example.task1.entity.Company;
 import com.example.task1.entity.Department;
 import com.example.task1.repository.DepartmentRepository;
@@ -13,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/department")
@@ -24,40 +27,41 @@ public class DepartmentController {
     final DepartmentRepository departmentRepository;
 
 
-    @GetMapping
-    public HttpEntity<?> getAllDepartments() {
-        List<Department> departments = departmentService.getDepartments();
-        return ResponseEntity.ok(departments);
 
+    @GetMapping
+    public HttpEntity<?> getAll() {
+        List<Department> all = departmentService.getAll();
+        return ResponseEntity.ok().body(all);
     }
 
-
-    @GetMapping
     @GetMapping("/{id}")
-    public HttpEntity<?> getCompany(@PathVariable Integer id) {
-        Company company = companyService.getCompany(id);
-        return ResponseEntity.status(company != null ? HttpStatus.OK : HttpStatus.CONFLICT).body(company);
+    public HttpEntity<?> getOne(@PathVariable Integer id) {
+        Optional<Department> optional = departmentService.getOne(id);
+        return ResponseEntity.status(!optional.isPresent() ?
+                HttpStatus.OK :
+                HttpStatus.NOT_FOUND).body(optional.get());
     }
 
     @PostMapping
-    public HttpEntity<?> addCompany(@RequestBody CompanyDto companyDto) {
-        Company savedCompany = companyService.addCompany(companyDto);
-        return ResponseEntity.status(201).body(savedCompany);
+    public HttpEntity<?> save(@RequestBody DepartmentDto departmentDto) {
+        ApiResponse response = departmentService.addDepartment(departmentDto);
+        return ResponseEntity.status(response.isSuccess() ?
+                        HttpStatus.CREATED : HttpStatus.CONFLICT).
+                body(response);
     }
 
     @PutMapping("/{id}")
-    public HttpEntity<?> editAddress(@PathVariable Integer id, @RequestBody CompanyDto companyDto) {
-        Company editedCompany = companyService.editAddress(id, companyDto);
-        return ResponseEntity.status(editedCompany != null ? 202 : 409).body(editedCompany);
+    public HttpEntity<?> editDepartment(@PathVariable Integer id, @RequestBody DepartmentDto departmentDto) {
+        ApiResponse apiResponse = departmentService.editDepartment(id, departmentDto);
+        return ResponseEntity.status(apiResponse.isSuccess() ? HttpStatus.CREATED : HttpStatus.CONFLICT).body(apiResponse);
     }
 
     @DeleteMapping("/{id}")
-    public HttpEntity<?> deleteCompany(@PathVariable Integer id) {
-        boolean deleted = companyService.deleteCompany(id);
-        if (deleted)
-            return ResponseEntity.noContent().build();
-        return ResponseEntity.notFound().build();
+    public HttpEntity<?> deleteDepartment(@PathVariable Integer id) {
+        ApiResponse apiResponse = departmentService.deleteDepartment(id);
+        return ResponseEntity.status(apiResponse.isSuccess() ? HttpStatus.OK : HttpStatus.NOT_FOUND).body(apiResponse);
     }
+
 
 
 }

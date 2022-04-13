@@ -1,5 +1,6 @@
 package com.example.task1.service;
 
+import com.example.task1.dto.ApiResponse;
 import com.example.task1.dto.CompanyDto;
 import com.example.task1.entity.Address;
 import com.example.task1.entity.Company;
@@ -20,32 +21,30 @@ public class CompanyService {
 
     final CompanyRepository companyRepository;
 
-    public List<Company> getCompanies(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Company> companyPage = companyRepository.findAll(pageable);
-        return companyPage.getContent();
+    public List<Company> getAll() {
+        return companyRepository.findAll();
     }
 
-    public Company getCompany(Integer id) {
-        Optional<Company> optionalCompany = companyRepository.findById(id);
-        return optionalCompany.orElse(null);
-
+    public Optional<Company> getOne(Integer id) {
+        return companyRepository.findById(id);
     }
 
-    public Company addCompany(CompanyDto companyDto) {
+
+    public ApiResponse addCompany(CompanyDto companyDto) {
 
         Address address = new Address();
         address.setStreet(companyDto.getSteet());
         address.setHomeNumber(companyDto.getHomeNumber());
+
         Company company = new Company();
         company.setName(companyDto.getName());
         company.setDirectorName(companyDto.getDirectorName());
         company.setAddress(address);
         Company save = companyRepository.save(company);
-        return save;
+        return new ApiResponse("added", true);
     }
 
-    public Company editAddress(Integer id, CompanyDto companyDto) {
+    public ApiResponse editCompany(Integer id, CompanyDto companyDto) {
         Optional<Company> optionalCompany = companyRepository.findById(id);
         if(optionalCompany.isPresent()){
             Company editingCompany = optionalCompany.get();
@@ -57,19 +56,18 @@ public class CompanyService {
             editingCompany.setName(companyDto.getName());
             editingCompany.setDirectorName(companyDto.getDirectorName());
             editingCompany.setAddress(address);
-
-            return companyRepository.save(editingCompany);
+            companyRepository.save(editingCompany);
+            return new ApiResponse("edited",true);
         }
-        return null;
+        return new ApiResponse("error",false);
     }
 
-    public boolean deleteCompany(Integer id) {
-
-        try {
+    public ApiResponse deleteCompany(Integer id) {
+        Optional<Company> optionalBook = companyRepository.findById(id);
+        if (optionalBook.isPresent()){
             companyRepository.deleteById(id);
-            return true;
-        }catch (Exception e){
-            return false;
+            return new ApiResponse("deleted",true);
         }
+        return new ApiResponse("not found",false);
     }
 }
